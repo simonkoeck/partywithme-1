@@ -1,6 +1,15 @@
 {
   "version": 2,
   "projects": {
-    "api": "apps/api"
+    "access-control": "libs/access-control",
+    "api": "apps/api",
+    "auth": "libs/auth",
+    "cdn": "apps/cdn",
+    "db": "libs/db",
+    "notifications": "apps/notifications",
+    "ott": "libs/ott",
+    "queue": "libs/queue",
+    "web": "apps/web",
+    "web-e2e": "apps/web-e2e"
   }
 }

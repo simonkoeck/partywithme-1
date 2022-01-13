@@ -1,0 +1,13 @@
+{
+  "created_party_title": "%USERNAME%",
+  "created_party_text": "created a party",
+  "deleted_party_title": "%USERNAME%",
+  "deleted_party_text": "canceled his party",
+  "added_as_friend_title": "%USERNAME%",
+  "added_as_friend_text": "has sent you a friend request",
+  "accept_friend_request_title": "%USERNAME%",
+  "accept_friend_request_text": "has accepted your friend request",
+  "participate": "Participate",
+  "accept_friend": "Accept",
+  "decline_friend": "Decline"
+}

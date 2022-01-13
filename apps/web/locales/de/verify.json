@@ -1,0 +1,5 @@
+{
+  "title": "Account aktivieren",
+  "verification_token_not_found": "Dieser Verifizierungs-Token wurde nicht gefunden!",
+  "success": "Dein Account ist nun aktiviert!"
+}

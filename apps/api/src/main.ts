@@ -1,18 +1,56 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
+import * as dotenv from 'dotenv';
+dotenv.config({ path: 'apps/api/.env' });
+dotenv.config({ path: '.env' });
+
+import { User, Party } from '@pwm/db';
+
+interface IParty extends Party {
+  participations: User[];
+  creator: User;
+  is_participating: boolean;
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      user: User;
+      party: IParty;
+    }
+  }
+}
 
 import * as express from 'express';
+import * as cors from 'cors';
+import setVersionCode from './middleware/set-version';
+import authRouter from './router/auth';
+import usersRouter from './router/users';
+import partiesRouter from './router/parties';
+import friendsRouter from './router/friends';
 
-const app = express();
+(async () => {
+  const app = express();
+  const port = process.env.PORT || 5000;
 
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to api!' });
-});
+  app.set('trust proxy', true);
 
-const port = process.env.port || 3333;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
-});
-server.on('error', console.error);
+  app.disable('etag');
+  app.disable('x-powered-by');
+
+  app.use(cors({ origin: process.env.WEBSITE_URL }));
+  app.use(express.json());
+  app.use(setVersionCode);
+
+  app.get('/ping', (req, res) => {
+    res.status(200).json({ ping: 'pong' });
+  });
+
+  app.use('/auth', authRouter);
+  app.use('/users', usersRouter);
+  app.use('/parties', partiesRouter);
+  app.use('/friends', friendsRouter);
+
+  app.listen(port, () => {
+    console.log(`API is listening on http://localhost:${port}`);
+  });
+})();

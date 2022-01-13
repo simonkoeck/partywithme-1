@@ -1,0 +1,13 @@
+{
+  "locales": ["en", "de"],
+  "defaultLocale": "en",
+  "pages": {
+    "*": ["common"],
+    "/verify": ["verify"],
+    "/about-us": ["about-us"],
+    "/privacy-policy": ["privacy-policy"],
+    "/share": ["share"],
+    "/download": ["download"],
+    "/reset-password": ["reset-password"]
+  }
+}

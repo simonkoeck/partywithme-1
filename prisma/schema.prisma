@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserLoginType {
+  EMAIL
+  GOOGLE
+}
+
+model PasswordReset {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id     String
+  token       String    @db.VarChar(64)
+  expiration  DateTime  @default(now())
+  created_at  DateTime      @default(now())
+}
+
+model User {
+  id                      String        @id @default(cuid())
+  username                String        @db.VarChar(20) @unique
+  email                   String        @db.VarChar(320) @unique
+  password                String?       @db.VarChar(72)
+  onesignal_external_user_id  String    @db.VarChar(128)
+  login_type              UserLoginType @default(EMAIL)
+  google_id               String?       @unique
+  locale                  String        @db.VarChar(5)  @default("en_US")
+  verified                Boolean       @default(false)
+  verification_token      String?       @db.VarChar(32) @unique
+  password_resets         PasswordReset[]
+  parties                 Party[]
+  participations          PartyParticipation[]
+  outgoing_friendrequests FriendRequest[] @relation(name: "FriendRequest_outgoing")
+  incoming_friendrequests FriendRequest[] @relation(name: "FriendRequest_incoming")
+  friends                 Friendship[]  @relation(name: "Friendship_user")
+  friends_friend          Friendship[]  @relation(name: "Friendship_friend")
+  created_at              DateTime      @default(now())
+  updated_at              DateTime      @updatedAt @default(now())
+}
+
+// Friends
+model FriendRequest {
+  id        String  @id @default(cuid())
+  from      User    @relation(fields: [from_id], references: [id], name: "FriendRequest_outgoing", onDelete: Cascade)
+  from_id   String 
+  to        User    @relation(fields: [to_id], references: [id], name: "FriendRequest_incoming", onDelete: Cascade)
+  to_id     String     
+  @@unique([from_id, to_id], name: "UQ_FriendRequest")
+}
+
+model Friendship {
+  id          String  @id @default(cuid())
+  user        User    @relation(fields: [user_id], references: [id], name: "Friendship_user", onDelete: Cascade)
+  user_id     String 
+  friend      User    @relation(fields: [friend_id], references: [id], name: "Friendship_friend", onDelete: Cascade)
+  friend_id   String     
+  @@unique([user_id, friend_id], name: "UQ_Friendship")
+}
+
+// Party
+
+enum PartyScope {
+  PUBLIC
+  FRIENDS
+  WHITELIST
+}
+
+model Party {
+  id              String      @id @default(cuid())
+  name            String      @db.VarChar(32)
+  description     String      @db.VarChar(500)
+  scope           PartyScope
+  starts_at       DateTime
+  ends_at         DateTime
+  creator         User        @relation(references: [id], fields: [creator_id], onDelete: Cascade)
+  creator_id      String
+  participations  PartyParticipation[]
+  latitude        Decimal     @db.Decimal(10, 8)
+  longitude       Decimal     @db.Decimal(11, 8)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt @default(now())
+}
+
+
+model PartyParticipation {
+  id        String  @id @default(cuid())
+  user      User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id   String 
+  party     Party   @relation(fields: [party_id], references: [id], onDelete: Cascade)
+  party_id  String       
+  @@unique([user_id, party_id], name: "UQ_PartyParticipation")
+}

@@ -1,0 +1,9 @@
+Account Activation
+
+Hello %USERNAME%,
+
+thank you for creating a Party With Me Account! In order to use Party With Me, a verification of your account is necessary. To do that, just click the link below.
+
+%LINK%
+
+Your Party With Me Team

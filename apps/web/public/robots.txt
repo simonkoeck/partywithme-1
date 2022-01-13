@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /download
+Allow: /about-us
+Allow: /privacy-policy
+Disallow: /share
+Disallow: /reset-password
+Disallow: /verify
