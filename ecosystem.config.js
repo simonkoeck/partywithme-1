@@ -31,5 +31,12 @@ module.exports = {
         NODE_ENV: 'production',
       },
     },
+    {
+      name: 'pwm-chat',
+      script: './dist/apps/chat/main.js',
+      env: {
+        NODE_ENV: 'production',
+      },
+    },
   ],
 };

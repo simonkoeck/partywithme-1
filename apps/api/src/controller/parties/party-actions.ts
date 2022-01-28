@@ -1,8 +1,7 @@
-import { partyParticipation } from './../../../../../libs/db/src/lib/db';
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import checkValidationError from '../../middleware/validation';
-import { party } from '@pwm/db';
+import { party, partyParticipation, conversation } from '@pwm/db';
 import { sendToQueue } from '@pwm/queue';
 
 const partyActionController = async (req: Request, res: Response) => {
@@ -13,6 +12,15 @@ const partyActionController = async (req: Request, res: Response) => {
           party_id: req.party.id,
           user_id: req.user.id,
         },
+      });
+      sendToQueue('chat', {
+        action: 'ADD_TO_CONVERSATION',
+        data: {
+          conversation: await conversation.findUnique({
+            where: { party_id: req.party.id },
+          }),
+        },
+        recipients: [req.user],
       });
       return res.status(202).json({ success: true });
     } catch (e) {
@@ -26,6 +34,15 @@ const partyActionController = async (req: Request, res: Response) => {
         party_id: req.party.id,
         user_id: req.user.id,
       },
+    });
+    sendToQueue('chat', {
+      action: 'REMOVE_FROM_CONVERSATION',
+      data: {
+        conversation: await conversation.findUnique({
+          where: { party_id: req.party.id },
+        }),
+      },
+      recipients: [req.user],
     });
     return res.status(202).json({ success: true });
   } else if (req.body.action == 'DELETE') {

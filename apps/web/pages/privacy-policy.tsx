@@ -1,5 +1,6 @@
 import useTranslation from 'next-translate/useTranslation';
 import React, { ReactElement } from 'react';
+import Layout from '../components/layout';
 import H1 from '../components/text/h1';
 import SubTitle from '../components/text/subtitle';
 
@@ -55,13 +56,12 @@ word-break: break-word !important;
   const { t } = useTranslation('privacy-policy');
 
   return (
-    <div className="p-5 legal">
-      <SubTitle text="PARTY WITH ME" />
+    <Layout>
       <H1 text={t('title')} />
       <article
         className="prose lg:prose-xl"
         dangerouslySetInnerHTML={{ __html: rawHtml }}
       ></article>
-    </div>
+    </Layout>
   );
 }

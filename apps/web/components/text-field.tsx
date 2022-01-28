@@ -1,9 +1,9 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useState } from 'react';
 
 interface Props {
   reference: React.MutableRefObject<HTMLInputElement>;
   label: string;
-  inputType: "password" | "email" | "text";
+  inputType: 'password' | 'email' | 'text';
 }
 
 export default function TextField({
@@ -15,14 +15,7 @@ export default function TextField({
 
   return (
     <div>
-      <label
-        className={
-          "transition duration-100 " +
-          (focused ? "text-primary" : "text-gray-800")
-        }
-      >
-        {label}
-      </label>
+      <label className={'transition duration-100 text-gray-800'}>{label}</label>
       <br />
       <input
         type={inputType}
@@ -33,7 +26,7 @@ export default function TextField({
         onBlur={(e) => {
           setFocused(false);
         }}
-        className="rounded-md border-2 outline-none p-2 focus:border-primary text-gray-700"
+        className="p-2 text-gray-700 border-2 rounded-md outline-none focus:border-primary"
       />
     </div>
   );

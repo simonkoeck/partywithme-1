@@ -1,7 +1,6 @@
-import { passwordReset } from './../../../../../libs/db/src/lib/db';
 import { body } from 'express-validator';
 import { Request, Response } from 'express';
-import { user } from '@pwm/db';
+import { user, passwordReset } from '@pwm/db';
 import { sendToQueue } from '@pwm/queue';
 import checkValidationError, { prefabs } from '../../middleware/validation';
 import { randomString } from '../../util/random';

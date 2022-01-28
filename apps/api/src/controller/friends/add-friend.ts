@@ -39,7 +39,11 @@ const addFriend = async (req: Request, res: Response) => {
       action: 'ADDED_AS_FRIEND',
       data: {},
       sender: req.user,
-      recipients: [u],
+      recipients: [
+        await user.findUnique({
+          where: { id: req.params.userId },
+        }),
+      ],
     });
   } catch (e) {
     console.error(e);

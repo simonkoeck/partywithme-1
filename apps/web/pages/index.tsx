@@ -1,5 +1,11 @@
+import Layout from '../components/layout';
+
 export function Index() {
-  return <h1 className="font-bold text-primary text-[2em]">Test</h1>;
+  return (
+    <Layout>
+      <div></div>
+    </Layout>
+  );
 }
 
 export default Index;

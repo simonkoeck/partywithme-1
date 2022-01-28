@@ -3,6 +3,7 @@
   "defaultLocale": "en",
   "pages": {
     "*": ["common"],
+    "/": ["index"],
     "/verify": ["verify"],
     "/about-us": ["about-us"],
     "/privacy-policy": ["privacy-policy"],

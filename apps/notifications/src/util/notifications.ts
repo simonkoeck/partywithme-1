@@ -13,7 +13,7 @@ export async function sendNotification(
   buttons: any[] | undefined = undefined,
   image: any = undefined,
   data: any = undefined,
-  channel: 'PARTIES' | 'FRIENDS'
+  channel: 'PARTIES' | 'FRIENDS' | 'CHAT'
 ) {
   if (externalUserIds.length == 0) return;
   data.buttons = buttons ?? [];
@@ -29,7 +29,9 @@ export async function sendNotification(
     android_channel_id:
       channel == 'PARTIES'
         ? 'd5ec83b0-143f-422c-b560-c82ea8e3faa6'
-        : '7c885d6f-a313-4976-8ee8-1b753511add0',
+        : channel == 'FRIENDS'
+        ? '7c885d6f-a313-4976-8ee8-1b753511add0'
+        : '7754885d-7095-470f-9678-89a246ccdbff',
     include_external_user_ids: externalUserIds,
     large_icon: image,
     data,

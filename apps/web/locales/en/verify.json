@@ -1,3 +1,5 @@
 {
-  "title": "Activate account"
+  "title": "Activate account",
+  "verification_token_not_found": "Invalid verification token!",
+  "success": "Your account is now activated!"
 }

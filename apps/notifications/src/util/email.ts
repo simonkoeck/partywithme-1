@@ -7,7 +7,7 @@ import {
 
 let tr: Transporter;
 
-(async () => {
+export async function init() {
   if (process.env.NODE_ENV == 'development') {
     const testAccount = await createTestAccount();
     tr = createTransport({
@@ -30,7 +30,7 @@ let tr: Transporter;
       },
     });
   }
-})();
+}
 
 export async function sendEmail(
   email: string,

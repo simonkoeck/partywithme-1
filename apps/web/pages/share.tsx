@@ -6,6 +6,7 @@ import SubTitle from '../components/text/subtitle';
 import playButton from '../public/assets/images/google_play.png';
 import Image from 'next/image';
 import useTranslation from 'next-translate/useTranslation';
+import Layout from '../components/layout';
 
 export default function SharePage(): ReactElement {
   const router = useRouter();
@@ -24,11 +25,10 @@ export default function SharePage(): ReactElement {
 
   return (
     <>
-      <Meta title="Party With Me" description="Finde Parties in deiner Nähe!" />
-      <div className="p-3 flex h-screen w-screen">
+      <Meta title="Party With Me" description="Find parties nearby!" />
+      <Layout>
         <div className="m-auto">
           <div className="w-screen md:w-auto">
-            <SubTitle text="Party With Me" />
             <H1 text={t('title', { type: t('common:' + type) })} />
             <div className="w-11/12 mt-14">
               <a
@@ -43,7 +43,7 @@ export default function SharePage(): ReactElement {
               <p className="text-center text-gray-500 mb-3 italic">
                 {t('not_downloaded_yet')}
               </p>
-              <div className="w-1/2 m-auto">
+              <div className="w-1/3 m-auto">
                 <Image
                   src={playButton}
                   alt="Play Store"
@@ -54,17 +54,10 @@ export default function SharePage(): ReactElement {
                   }}
                 />
               </div>
-
-              {/* <a
-                className="font-bold text-white bg-primary py-2 px-5 rounded-md block text-center"
-                href=
-              >
-                Im Play Store downloaden
-              </a> */}
             </div>
           </div>
         </div>
-      </div>
+      </Layout>
     </>
   );
 }

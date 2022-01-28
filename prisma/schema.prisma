@@ -42,6 +42,8 @@ model User {
   incoming_friendrequests FriendRequest[] @relation(name: "FriendRequest_incoming")
   friends                 Friendship[]  @relation(name: "Friendship_user")
   friends_friend          Friendship[]  @relation(name: "Friendship_friend")
+  read_confirmations      ChatMessageReadConfirmation[]
+  messages                ChatMessage[]
   created_at              DateTime      @default(now())
   updated_at              DateTime      @updatedAt @default(now())
 }
@@ -57,11 +59,12 @@ model FriendRequest {
 }
 
 model Friendship {
-  id          String  @id @default(cuid())
-  user        User    @relation(fields: [user_id], references: [id], name: "Friendship_user", onDelete: Cascade)
-  user_id     String 
-  friend      User    @relation(fields: [friend_id], references: [id], name: "Friendship_friend", onDelete: Cascade)
-  friend_id   String     
+  id            String  @id @default(cuid())
+  user          User    @relation(fields: [user_id], references: [id], name: "Friendship_user", onDelete: Cascade)
+  user_id       String 
+  friend        User    @relation(fields: [friend_id], references: [id], name: "Friendship_friend", onDelete: Cascade)
+  friend_id     String     
+  conversation  Conversation[]
   @@unique([user_id, friend_id], name: "UQ_Friendship")
 }
 
@@ -83,6 +86,7 @@ model Party {
   creator         User        @relation(references: [id], fields: [creator_id], onDelete: Cascade)
   creator_id      String
   participations  PartyParticipation[]
+  conversation    Conversation[]
   latitude        Decimal     @db.Decimal(10, 8)
   longitude       Decimal     @db.Decimal(11, 8)
   created_at      DateTime    @default(now())
@@ -97,4 +101,42 @@ model PartyParticipation {
   party     Party   @relation(fields: [party_id], references: [id], onDelete: Cascade)
   party_id  String       
   @@unique([user_id, party_id], name: "UQ_PartyParticipation")
+}
+
+// Chat
+
+model Conversation {
+  id            String  @id @default(cuid())
+  friendship    Friendship?  @relation(fields: [friendship_id], references: [id], onDelete: Cascade) 
+  friendship_id String? @unique
+  party         Party?  @relation(fields: [party_id], references: [id], onDelete: Cascade)
+  party_id      String? @unique
+  messages      ChatMessage[]
+}
+
+enum ChatMessageType {
+  TEXT
+}
+
+model ChatMessage {
+  id                  String          @id @default(cuid())
+  conversation        Conversation    @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  conversation_id     String
+  type                ChatMessageType @default(TEXT)
+  content             String          @db.VarChar(1000)
+  sender              User            @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  sender_id           String
+  read_confirmations  ChatMessageReadConfirmation[]
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @updatedAt @default(now())
+}
+
+model ChatMessageReadConfirmation {
+  id              String          @id @default(cuid())
+  user            User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id         String
+  message         ChatMessage     @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  message_id      String
+  created_at      DateTime        @default(now())
+  @@unique([user_id, message_id], name: "UQ_ChatMessageReadConfirmation")
 }

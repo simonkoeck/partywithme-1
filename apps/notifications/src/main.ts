@@ -1,29 +1,32 @@
-import { User } from '@pwm/db';
-import { generateOneTimeToken } from '@pwm/ott';
-import { consume } from '@pwm/queue';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: 'apps/notifications/.env' });
 dotenv.config({ path: '.env' });
 
-consume('notfications', (data) => {
+import { User } from '@pwm/db';
+import { generateOneTimeToken } from '@pwm/ott';
+import { consume } from '@pwm/queue';
+import { translate } from './util/localization';
+import { sendNotification } from './util/notifications';
+
+consume('notifications', (data) => {
   switch (data.action) {
     case 'PARTY_CREATED':
-      data.recipients.forEach(async (user: User) => {
-        const ott = await generateOneTimeToken(user);
+      data.recipients.forEach(async (u: User) => {
+        const ott = await generateOneTimeToken(u);
         sendNotification(
-          [user.onesignal_external_user_id],
-          translate(user.locale, 'created_party_title').replace(
+          [u.onesignal_external_user_id],
+          translate(u.locale, 'created_party_title').replace(
             '%USERNAME%',
             data.sender.username
           ),
-          translate(user.locale, 'created_party_text').replace(
+          translate(u.locale, 'created_party_text').replace(
             '%USERNAME%',
             data.sender.username
           ),
           [
             {
               action: 'PARTICIPATE_PARTY',
-              text: translate(user.locale, 'participate'),
+              text: translate(u.locale, 'participate'),
             },
           ],
           `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
@@ -118,6 +121,29 @@ consume('notfications', (data) => {
       });
 
       break;
+    case 'MESSAGE_RECEIVED':
+      data.recipients.forEach(async (user: User) => {
+        // const ott = await generateOneTimeToken(user);
+
+        sendNotification(
+          [user.onesignal_external_user_id],
+          data.sender.username,
+          data.data.message.content,
+          [],
+          `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
+          {
+            scope: 'CHAT',
+            conversation: data.data.conversation_id,
+            conversation_name: data.data.conversation_name,
+            message: data.data.message,
+            auth: {
+              // OTT: ott,
+            },
+            api_url: process.env.API_URL,
+          },
+          'CHAT'
+        );
+      });
   }
 });
 
@@ -131,9 +157,7 @@ consume('notfications', (data) => {
 import { readFileSync } from 'fs';
 import { lookup } from 'geoip-lite';
 import * as NodeGeocoder from 'node-geocoder';
-import { sendEmail } from './util/email';
-import { translate } from './util/localization';
-import { sendNotification } from './util/notifications';
+import { init, sendEmail } from './util/email';
 
 const forgotPasswordTemplateHtml = readFileSync(
   'templates/forgot_password_de.html',
@@ -165,60 +189,64 @@ const options: NodeGeocoder.Options = {
 
 const geocoder = NodeGeocoder(options);
 
-consume('email', async (data) => {
-  if (data.action == 'FORGOT_PASSWORD') {
-    const l = lookup(data.data.ip);
+(async () => {
+  await init();
 
-    let html = forgotPasswordTemplateHtml
-      .replace(/%USERNAME%/g, data.recipients[0].username)
-      .replace(
-        /%LINK%/g,
-        `${process.env.WEBSITE_URL}/reset-password?token=${data.data.token}`
-      );
-    let text = forgotPasswordTemplateTxt
-      .replace(/%USERNAME%/g, data.recipients[0].username)
-      .replace(
-        /%LINK%/g,
-        `${process.env.WEBSITE_URL}/reset-password?token=${data.data.token}`
-      );
-    if (l != null) {
-      let res: NodeGeocoder.Entry[] = [];
-      try {
-        res = await geocoder.reverse({
-          lat: l.ll[0],
-          lon: l.ll[1],
-        });
-      } catch (e) {
-        console.error(e);
-      }
-      if (res.length != 0) {
-        html = html.replace(
-          /%IP%/g,
-          res[0].city + ', ' + res[0].country + ' (IP=' + data.data.ip + ')'
+  consume('email', async (data) => {
+    if (data.action == 'FORGOT_PASSWORD') {
+      const l = lookup(data.data.ip);
+
+      let html = forgotPasswordTemplateHtml
+        .replace(/%USERNAME%/g, data.recipients[0].username)
+        .replace(
+          /%LINK%/g,
+          `${process.env.WEBSITE_URL}/reset-password?token=${data.data.token}`
         );
-        text = text.replace(
-          /%IP%/g,
-          res[0].city + ', ' + res[0].country + ' (IP=' + data.data.ip + ')'
+      let text = forgotPasswordTemplateTxt
+        .replace(/%USERNAME%/g, data.recipients[0].username)
+        .replace(
+          /%LINK%/g,
+          `${process.env.WEBSITE_URL}/reset-password?token=${data.data.token}`
         );
+      if (l != null) {
+        let res: NodeGeocoder.Entry[] = [];
+        try {
+          res = await geocoder.reverse({
+            lat: l.ll[0],
+            lon: l.ll[1],
+          });
+        } catch (e) {
+          console.error(e);
+        }
+        if (res.length != 0) {
+          html = html.replace(
+            /%IP%/g,
+            res[0].city + ', ' + res[0].country + ' (IP=' + data.data.ip + ')'
+          );
+          text = text.replace(
+            /%IP%/g,
+            res[0].city + ', ' + res[0].country + ' (IP=' + data.data.ip + ')'
+          );
+        }
+      } else {
+        html = html.replace(/%IP%/g, data.data.ip);
+        text = text.replace(/%IP%/g, data.data.ip);
       }
-    } else {
-      html = html.replace(/%IP%/g, data.data.ip);
-      text = text.replace(/%IP%/g, data.data.ip);
+      sendEmail(data.recipients[0].email, html, text, 'Passwort vergessen');
+    } else if (data.action == 'VERIFICATION') {
+      const html = verificationTemplateHtml
+        .replace(/%USERNAME%/g, data.recipients[0].username)
+        .replace(
+          /%LINK%/g,
+          `${process.env.WEBSITE_URL}/verify?token=${data.data.token}`
+        );
+      const text = verificationTemplateTxt
+        .replace(/%USERNAME%/g, data.recipients[0].username)
+        .replace(
+          /%LINK%/g,
+          `${process.env.WEBSITE_URL}/verify?token=${data.data.token}`
+        );
+      sendEmail(data.recipients[0].email, html, text, 'Account aktivieren');
     }
-    sendEmail(data.recipients[0].email, html, text, 'Passwort vergessen');
-  } else if (data.action == 'VERIFICATION') {
-    const html = verificationTemplateHtml
-      .replace(/%USERNAME%/g, data.recipients[0].username)
-      .replace(
-        /%LINK%/g,
-        `${process.env.WEBSITE_URL}/verify?token=${data.data.token}`
-      );
-    const text = verificationTemplateTxt
-      .replace(/%USERNAME%/g, data.recipients[0].username)
-      .replace(
-        /%LINK%/g,
-        `${process.env.WEBSITE_URL}/verify?token=${data.data.token}`
-      );
-    sendEmail(data.recipients[0].email, html, text, 'Account aktivieren');
-  }
-});
+  });
+})();

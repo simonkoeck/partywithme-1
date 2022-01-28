@@ -3,6 +3,7 @@ import useTranslation from 'next-translate/useTranslation';
 import { useRouter } from 'next/dist/client/router';
 import React, { ReactElement, useEffect, useState } from 'react';
 import Alert from '../components/alert';
+import Layout from '../components/layout';
 import H1 from '../components/text/h1';
 import SubTitle from '../components/text/subtitle';
 import { API_BASE_URL } from '../helpers/config';
@@ -39,8 +40,7 @@ export default function VerifyPage(): ReactElement {
   }, [router]);
 
   return (
-    <div className="p-4">
-      <SubTitle text="PARTY WITH ME" />
+    <Layout>
       <H1 text={t('title')}></H1>
       {error ? (
         <Alert
@@ -53,6 +53,6 @@ export default function VerifyPage(): ReactElement {
         />
       ) : null}
       {success ? <Alert text={t('success')} type="SUCCESS" /> : null}
-    </div>
+    </Layout>
   );
 }

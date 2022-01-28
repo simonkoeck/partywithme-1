@@ -18,6 +18,7 @@
       "@pwm/accessControl": ["libs/access-control/src/index.ts"],
       "@pwm/auth": ["libs/auth/src/index.ts"],
       "@pwm/db": ["libs/db/src/index.ts"],
+      "@pwm/env": ["libs/env/src/index.ts"],
       "@pwm/ott": ["libs/ott/src/index.ts"],
       "@pwm/queue": ["libs/queue/src/index.ts"],
       "@pwm/redis": ["libs/redis/src/index.ts"]

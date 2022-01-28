@@ -1,4 +1,4 @@
-import { party, client } from '@pwm/db';
+import { client } from '@pwm/db';
 import { Request, Response } from 'express';
 
 const MAX_DISTANCE_IN_KM = 20;

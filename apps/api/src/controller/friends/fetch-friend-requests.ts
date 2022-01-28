@@ -1,4 +1,4 @@
-import { friendRequest } from './../../../../../libs/db/src/lib/db';
+import { friendRequest } from '@pwm/db';
 import { Request, Response } from 'express';
 
 const fetchFriendRequets = async (req: Request, res: Response) => {

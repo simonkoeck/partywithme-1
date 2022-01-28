@@ -4,9 +4,10 @@ import { useRouter } from 'next/dist/client/router';
 import React, { ReactElement, useRef, useState } from 'react';
 import Alert from '../components/alert';
 import PrimaryButton from '../components/buttons/primary-button';
+import Layout from '../components/layout';
 import TextField from '../components/text-field';
 import H1 from '../components/text/h1';
-import SubTitle from '../components/text/subtitle';
+import { HiRefresh } from 'react-icons/hi';
 import { API_BASE_URL } from '../helpers/config';
 
 export default function ResetPasswordPage(): ReactElement {
@@ -48,9 +49,11 @@ export default function ResetPasswordPage(): ReactElement {
   }
 
   return (
-    <div className="p-5">
-      <SubTitle text="PARTY WITH ME" />
-      <H1 text={t('title')}></H1>
+    <Layout>
+      <div className="mb-5">
+        <H1 text={t('title')}></H1>
+      </div>
+
       {success ? (
         <Alert text={t('success')} type="SUCCESS" />
       ) : error ? (
@@ -87,12 +90,13 @@ export default function ResetPasswordPage(): ReactElement {
         />
         <br />
         <PrimaryButton
+          icon={<HiRefresh />}
           text={t('submit_btn')}
           onClick={(e) => {
             submit();
           }}
         />
       </form>
-    </div>
+    </Layout>
   );
 }
