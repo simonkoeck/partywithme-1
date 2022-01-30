@@ -1,3 +1,4 @@
+import useTranslation from 'next-translate/useTranslation';
 import Link from 'next/link';
 import React, { ReactElement } from 'react';
 import {
@@ -8,6 +9,8 @@ import {
 } from 'react-icons/fa';
 
 export default function Footer(): ReactElement {
+  const { t } = useTranslation('common');
+
   return (
     <div className="py-6 mt-auto text-center bg-gray-200">
       <div className="flex flex-row items-center justify-center gap-6 cursor-pointer">
@@ -41,9 +44,16 @@ export default function Footer(): ReactElement {
         </a>
       </div>
       <div className="flex flex-row justify-center gap-3 my-2 md:gap-8">
-        <FooterLink href="/about-us" text="About us" />
-        <FooterLink href="/privacy-policy" text="Privacy Policy" />
-        <FooterLink href="/terms-and-conditions" text="Terms and Conditions" />
+        <FooterLink href="/about-us" text={t('about-us')} />
+        <FooterLink href="/privacy-policy" text={t('privacy-policy')} />
+        <FooterLink
+          href="/terms-and-conditions"
+          text={t('terms-and-conditions')}
+        />
+        <FooterLink
+          href="/community-guidelines"
+          text={t('community-guidelines')}
+        />
       </div>
       <div className="text-sm text-center text-gray-600">
         © 2021 Copyright Simplify Software

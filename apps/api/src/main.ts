@@ -27,10 +27,11 @@ import authRouter from './router/auth';
 import usersRouter from './router/users';
 import partiesRouter from './router/parties';
 import friendsRouter from './router/friends';
+import { env } from '@pwm/env';
 
 (async () => {
   const app = express();
-  const port = process.env.PORT || 5000;
+  const port = env('PORT') || 5000;
 
   app.set('trust proxy', true);
 

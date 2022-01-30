@@ -5,7 +5,7 @@ import { param } from 'express-validator';
 import createParty from '../controller/parties/create-party';
 import fetchParties from '../controller/parties/fetch-parties';
 import checkValidationError from '../middleware/validation';
-import { party, user } from '@pwm/db';
+import { party } from '@pwm/db';
 import getPartyController from '../controller/parties/get-party';
 import partyActions from '../controller/parties/party-actions';
 import editParty from '../controller/parties/edit-party';

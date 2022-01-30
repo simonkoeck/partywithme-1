@@ -29,14 +29,12 @@ consume('notifications', (data) => {
               text: translate(u.locale, 'participate'),
             },
           ],
-          `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
+          `${env('CDN_URL')}/dl/av/${data.sender.id}-100x100.jpg`,
           {
             scope: 'PARTY',
-            id: data.data.party._id,
-            auth: {
-              OTT: ott,
-            },
-            api_url: process.env.API_URL,
+            id: data.data.party.id,
+            ott,
+            api_url: env('API_URL'),
           },
           'PARTIES'
         );
@@ -55,7 +53,7 @@ consume('notifications', (data) => {
             data.sender.username
           ),
           [],
-          `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
+          `${env('CDN_URL')}/dl/av/${data.sender.id}-100x100.jpg`,
           {
             scope: 'PARTY',
           },
@@ -86,14 +84,12 @@ consume('notifications', (data) => {
               text: translate(user.locale, 'decline_friend'),
             },
           ],
-          `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
+          `${env('CDN_URL')}/dl/av/${data.sender.id}-100x100.jpg`,
           {
             scope: 'FRIENDS',
             id: data.sender.id,
-            auth: {
-              OTT: ott,
-            },
-            api_url: process.env.API_URL,
+            ott,
+            api_url: env('API_URL'),
           },
           'FRIENDS'
         );
@@ -112,7 +108,7 @@ consume('notifications', (data) => {
             data.sender.username
           ),
           [],
-          `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
+          `${env('CDN_URL')}/dl/av/${data.sender.id}-100x100.jpg`,
           {
             scope: 'FRIENDS',
           },
@@ -123,23 +119,21 @@ consume('notifications', (data) => {
       break;
     case 'MESSAGE_RECEIVED':
       data.recipients.forEach(async (user: User) => {
-        // const ott = await generateOneTimeToken(user);
+        const ott = await generateOneTimeToken(user);
 
         sendNotification(
           [user.onesignal_external_user_id],
           data.sender.username,
           data.data.message.content,
           [],
-          `${process.env.CDN_URL}/dl/av/${data.sender.id}-100x100.jpg`,
+          undefined,
           {
             scope: 'CHAT',
             conversation: data.data.conversation_id,
             conversation_name: data.data.conversation_name,
             message: data.data.message,
-            auth: {
-              // OTT: ott,
-            },
-            api_url: process.env.API_URL,
+            ott,
+            api_url: env('API_URL'),
           },
           'CHAT'
         );
@@ -148,16 +142,13 @@ consume('notifications', (data) => {
 });
 
 //
-//  Notifications
-//
-
-//
 //  E-Mail
 //
 import { readFileSync } from 'fs';
 import { lookup } from 'geoip-lite';
 import * as NodeGeocoder from 'node-geocoder';
 import { init, sendEmail } from './util/email';
+import { env } from '@pwm/env';
 
 const forgotPasswordTemplateHtml = readFileSync(
   'templates/forgot_password_de.html',
@@ -183,7 +174,7 @@ const verificationTemplateTxt = readFileSync('templates/verification_de.html', {
 
 const options: NodeGeocoder.Options = {
   provider: 'opencage',
-  apiKey: process.env.OPENCAGE_API_KEY,
+  apiKey: env('OPENCAGE_API_KEY'),
   formatter: null,
 };
 
@@ -200,13 +191,13 @@ const geocoder = NodeGeocoder(options);
         .replace(/%USERNAME%/g, data.recipients[0].username)
         .replace(
           /%LINK%/g,
-          `${process.env.WEBSITE_URL}/reset-password?token=${data.data.token}`
+          `${env('WEBSITE_URL')}/reset-password?token=${data.data.token}`
         );
       let text = forgotPasswordTemplateTxt
         .replace(/%USERNAME%/g, data.recipients[0].username)
         .replace(
           /%LINK%/g,
-          `${process.env.WEBSITE_URL}/reset-password?token=${data.data.token}`
+          `${env('WEBSITE_URL')}/reset-password?token=${data.data.token}`
         );
       if (l != null) {
         let res: NodeGeocoder.Entry[] = [];
@@ -238,13 +229,13 @@ const geocoder = NodeGeocoder(options);
         .replace(/%USERNAME%/g, data.recipients[0].username)
         .replace(
           /%LINK%/g,
-          `${process.env.WEBSITE_URL}/verify?token=${data.data.token}`
+          `${env('WEBSITE_URL')}/verify?token=${data.data.token}`
         );
       const text = verificationTemplateTxt
         .replace(/%USERNAME%/g, data.recipients[0].username)
         .replace(
           /%LINK%/g,
-          `${process.env.WEBSITE_URL}/verify?token=${data.data.token}`
+          `${env('WEBSITE_URL')}/verify?token=${data.data.token}`
         );
       sendEmail(data.recipients[0].email, html, text, 'Account aktivieren');
     }

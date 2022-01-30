@@ -11,13 +11,22 @@ import { env } from '@pwm/env';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { config } from 'dotenv';
-import { accessWithAccessToken, accessWithOtt } from '@pwm/accessControl';
+import {
+  accessControlMiddleware,
+  accessWithAccessToken,
+} from '@pwm/accessControl';
 import { consume, sendToQueue } from '@pwm/queue';
+import * as express from 'express';
+const app = express();
+
+app.post('/send_message', accessControlMiddleware, (req, res) => {
+  res.status(200).json({ success: true });
+});
 
 config({ path: '.env' });
 config({ path: 'apps/chat/.env' });
 
-const server = createServer();
+const server = createServer(app);
 const io = new Server(
   server,
   env('NODE_ENV') == 'development'
@@ -60,14 +69,6 @@ io.on('connection', (client) => {
           break;
         }
         break;
-      case 'OTT':
-        try {
-          u = await accessWithOtt(data.token);
-        } catch (e) {
-          ack({ success: false, error: 'INTERNAL_SERVER_ERROR' });
-          break;
-        }
-        break;
       default:
         ack({ success: false, error: 'INVALID_AUTH_TYPE' });
         break;
@@ -77,7 +78,6 @@ io.on('connection', (client) => {
       where: { id: u.id },
     });
 
-    console.log('user', state.user);
     state.authenticated = true;
 
     state.reset_authentication_timeout = setTimeout(() => {
@@ -128,8 +128,6 @@ io.on('connection', (client) => {
     conversations.forEach((c) => {
       client.join(PREFIX + c.id);
     });
-
-    console.log(client.rooms);
   });
 
   client.on('send_message', async (data, ack) => {

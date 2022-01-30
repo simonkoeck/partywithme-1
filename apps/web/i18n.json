@@ -9,6 +9,7 @@
     "/privacy-policy": ["privacy-policy"],
     "/share": ["share"],
     "/download": ["download"],
-    "/reset-password": ["reset-password"]
+    "/reset-password": ["reset-password"],
+    "/community-guidelines": ["community-guidelines"]
   }
 }

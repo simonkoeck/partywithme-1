@@ -3,6 +3,7 @@ import * as multer from 'multer';
 import { extname, resolve } from 'path';
 import * as sharp from 'sharp';
 import { unlinkSync } from 'fs';
+import { env } from '@pwm/env';
 
 interface MulterRequest extends Request {
   file: any;
@@ -71,9 +72,9 @@ const uploadAvatarController = async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     avatar_urls: {
-      '50x50': process.env.AVATAR_URL + req.user.id + '-50x50.jpg',
-      '100x100': process.env.AVATAR_URL + req.user.id + '-100x100.jpg',
-      '200x200': process.env.AVATAR_URL + req.user.id + '-200x200.jpg',
+      '50x50': env('AVATAR_URL') + req.user.id + '-50x50.jpg',
+      '100x100': env('AVATAR_URL') + req.user.id + '-100x100.jpg',
+      '200x200': env('AVATAR_URL') + req.user.id + '-200x200.jpg',
     },
   });
 };

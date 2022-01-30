@@ -1,3 +1,4 @@
+import { env } from '@pwm/env';
 import {
   createTransport,
   createTestAccount,
@@ -8,7 +9,7 @@ import {
 let tr: Transporter;
 
 export async function init() {
-  if (process.env.NODE_ENV == 'development') {
+  if (env('NODE_ENV') == 'development') {
     const testAccount = await createTestAccount();
     tr = createTransport({
       host: 'smtp.ethereal.email',
@@ -21,12 +22,12 @@ export async function init() {
     });
   } else {
     tr = createTransport({
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
+      host: env('SMTP_HOST'),
+      port: env('SMTP_PORT'),
       secure: true,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
+        user: env('SMTP_USER'),
+        pass: env('SMTP_PASSWORD'),
       },
     });
   }
@@ -39,14 +40,16 @@ export async function sendEmail(
   subject: string
 ) {
   const info = await tr.sendMail({
-    from: 'Party With Me <' + process.env.SMTP_FROM + '>', // sender address
+    from: 'Party With Me <' + env('SMTP_FROM') + '>', // sender address
     to: email, // list of receivers
     subject: subject, // Subject line
     text: text, // plain text body
     html: html, // html body
   });
 
-  console.log('Message sent: %s', info.messageId);
+  if (env('NODE_ENV') == 'development') {
+    console.log('Message sent: %s', info.messageId);
+  }
 
   if (process.env.NODE_ENV == 'development')
     console.log('Preview URL: %s', getTestMessageUrl(info));

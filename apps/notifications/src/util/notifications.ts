@@ -1,18 +1,28 @@
+import { env } from '@pwm/env';
 import { Client, HTTPError } from 'onesignal-node';
 import { CreateNotificationBody } from 'onesignal-node/lib/types';
 
 const client = new Client(
-  process.env.ONESIGNAL_APP_ID,
-  process.env.ONESIGNAL_REST_API_KEY
+  env('ONESIGNAL_APP_ID'),
+  env('ONESIGNAL_REST_API_KEY')
 );
+
+interface StringMap {
+  [key: string]: string | IButton[];
+}
+
+interface IButton {
+  action: string;
+  text: string;
+}
 
 export async function sendNotification(
   externalUserIds: string[],
   title: string,
   content: string,
-  buttons: any[] | undefined = undefined,
-  image: any = undefined,
-  data: any = undefined,
+  buttons: IButton[] | undefined = undefined,
+  image: string | undefined = undefined,
+  data: StringMap | undefined = undefined,
   channel: 'PARTIES' | 'FRIENDS' | 'CHAT'
 ) {
   if (externalUserIds.length == 0) return;

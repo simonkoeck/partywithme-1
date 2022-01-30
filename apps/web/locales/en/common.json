@@ -3,5 +3,9 @@
   "user": "User",
   "party": "Party",
   "password": "Password",
-  "repeat_password": "Repeat password"
+  "repeat_password": "Repeat password",
+  "about-us": "About us",
+  "privacy-policy": "Privacy Policy",
+  "terms-and-conditions": "Terms and Conditions",
+  "community-guidelines": "Community Guidelines"
 }

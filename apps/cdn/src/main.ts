@@ -19,9 +19,10 @@ import * as express from 'express';
 import uploadAvatarController from './controller/upload-avatar';
 import { resolve } from 'path';
 import { accessControlMiddleware } from '@pwm/accessControl';
+import { env } from '@pwm/env';
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = env('PORT') || 5000;
 
 app.disable('etag');
 app.disable('x-powered-by');
@@ -29,7 +30,7 @@ app.disable('x-powered-by');
 app.use(express.json());
 
 // Render uploads using nginx on prod
-if (process.env.NODE_ENV == 'development') {
+if (env('NODE_ENV') == 'development') {
   app.use(
     '/dl/av',
     express.static('uploads/avatars', { index: false, extensions: ['jpg'] })
