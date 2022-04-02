@@ -9,6 +9,7 @@ import TextField from '../components/text-field';
 import H1 from '../components/text/h1';
 import { HiRefresh } from 'react-icons/hi';
 import { API_BASE_URL } from '../helpers/config';
+import Meta from '../components/meta';
 
 export default function ResetPasswordPage(): ReactElement {
   const router = useRouter();
@@ -50,6 +51,7 @@ export default function ResetPasswordPage(): ReactElement {
 
   return (
     <Layout>
+      <Meta title={'Party With Me | ' + t('title')} description="" />
       <div className="mb-5">
         <H1 text={t('title')}></H1>
       </div>

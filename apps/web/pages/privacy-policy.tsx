@@ -1,6 +1,7 @@
 import useTranslation from 'next-translate/useTranslation';
 import React, { ReactElement } from 'react';
 import Layout from '../components/layout';
+import Meta from '../components/meta';
 import H1 from '../components/text/h1';
 import SubTitle from '../components/text/subtitle';
 
@@ -57,6 +58,7 @@ word-break: break-word !important;
 
   return (
     <Layout>
+      <Meta title={"Party With Me | " + t('title')} description="" />
       <H1 text={t('title')} />
       <article
         className="prose lg:prose-xl"

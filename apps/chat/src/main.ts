@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   chatMessage,
   chatMessageReadConfirmation,
   conversation,
+  conversationMute,
   partyPublic,
   user,
   User,
@@ -17,10 +19,178 @@ import {
 } from '@pwm/accessControl';
 import { consume, sendToQueue } from '@pwm/queue';
 import * as express from 'express';
+import { fetchUserConversations } from './helper';
 const app = express();
 
-app.post('/send_message', accessControlMiddleware, (req, res) => {
-  res.status(200).json({ success: true });
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      user: User;
+    }
+  }
+}
+
+async function sendMessage(
+  conversationId: string,
+  type: 'TEXT',
+  content: string,
+  sender: User
+) {
+  const message = await chatMessage.create({
+    data: {
+      conversation_id: conversationId,
+      type: type,
+      content: content,
+      sender_id: sender.id,
+      read_confirmations: {
+        create: {
+          user_id: sender.id,
+        },
+      },
+    },
+    select: {
+      id: true,
+      content: true,
+      type: true,
+      created_at: true,
+      read_confirmations: {
+        select: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      },
+      sender: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+
+  io.to(PREFIX + conversationId).emit('message_received', {
+    conversation: conversationId,
+    message,
+  });
+
+  // Send notification
+
+  const recipients: any = [];
+  const c = await conversation.findUnique({
+    where: { id: conversationId },
+    select: {
+      mutes: {
+        select: {
+          user_id: true,
+        },
+      },
+      friendship: {
+        select: {
+          user: {
+            select: {
+              onesignal_external_user_id: true,
+              id: true,
+              username: true,
+            },
+          },
+          friend: {
+            select: {
+              onesignal_external_user_id: true,
+              id: true,
+              username: true,
+            },
+          },
+        },
+      },
+      party: {
+        select: {
+          name: true,
+          creator: {
+            select: {
+              id: true,
+            },
+          },
+          participations: {
+            select: {
+              user: {
+                select: {
+                  onesignal_external_user_id: true,
+                  id: true,
+                  username: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (c.party != null) {
+    c.party.participations.forEach((p) => {
+      if (p.user.id == sender.id) return;
+      if (c.mutes.findIndex((m) => m.user_id == p.user.id) != -1) return;
+      recipients.push(p.user);
+    });
+  } else if (c.friendship != null) {
+    const u1 =
+      c.friendship.friend.id == sender.id
+        ? c.friendship.user
+        : c.friendship.friend;
+    if (c.mutes.findIndex((m) => m.user_id == u1.id) != -1) return;
+    recipients.push(u1);
+  }
+
+  const conversationName =
+    c.party != null
+      ? c.party.name
+      : c.friendship.user.id == sender.id
+      ? c.friendship.user.username
+      : c.friendship.friend.username;
+
+  sendToQueue('notifications', {
+    action: 'MESSAGE_RECEIVED',
+    data: {
+      conversation_id: conversationId,
+      message,
+      conversation_name: conversationName,
+      is_group_conversation: c.party != null,
+      conversation_icon_user_id:
+        c.party != null
+          ? c.party.creator.id
+          : c.friendship.user.id == sender.id
+          ? c.friendship.user.id
+          : c.friendship.friend.id,
+    },
+    recipients: recipients,
+    sender,
+  });
+}
+
+app.use(express.json());
+
+app.post('/send_message', accessControlMiddleware, async (req, res) => {
+  const conversation_id = req.body.conversation_id;
+  const message = req.body.message;
+  const conversations = await fetchUserConversations(req.user);
+  if (conversations.findIndex((c) => c.id == conversation_id) > -1) {
+    try {
+      await sendMessage(conversation_id, 'TEXT', message, req.user);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({});
+      return;
+    }
+
+    res.status(200).json({ success: true });
+  } else {
+    res.status(403).json({ error: 'NO_CONVERSATION_ACCESS' });
+  }
 });
 
 config({ path: '.env' });
@@ -66,12 +236,12 @@ io.on('connection', (client) => {
           u = await accessWithAccessToken(data.token);
         } catch (e) {
           ack({ success: false, error: e.name });
-          break;
+          return;
         }
         break;
       default:
         ack({ success: false, error: 'INVALID_AUTH_TYPE' });
-        break;
+        return;
     }
 
     state.user = await user.findUnique({
@@ -94,36 +264,7 @@ io.on('connection', (client) => {
     ack({ success: true, auth_timeout: AUTH_TIMEOUT });
 
     // Join conversations
-    const conversations = await conversation.findMany({
-      select: {
-        id: true,
-      },
-      where: {
-        OR: [
-          {
-            party: {
-              participations: {
-                some: {
-                  user_id: state.user.id,
-                },
-              },
-            },
-          },
-          {
-            friendship: {
-              OR: [
-                {
-                  friend_id: state.user.id,
-                },
-                {
-                  user_id: state.user.id,
-                },
-              ],
-            },
-          },
-        ],
-      },
-    });
+    const conversations = await fetchUserConversations(state.user);
 
     conversations.forEach((c) => {
       client.join(PREFIX + c.id);
@@ -136,120 +277,88 @@ io.on('connection', (client) => {
       return ack({ success: false, error: 'NOT_IN_CONVERSATION' });
     }
 
-    const message = await chatMessage.create({
-      data: {
-        conversation_id: data.conversation,
-        type: data.type,
-        content: data.content,
-        sender_id: state.user.id,
-        read_confirmations: {
-          create: {
-            user_id: state.user.id,
-          },
-        },
-      },
-      select: {
-        id: true,
-        content: true,
-        type: true,
-        created_at: true,
-        read_confirmations: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-          },
-        },
-        sender: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
-
-    io.to(PREFIX + data.conversation).emit('message_received', {
-      conversation: data.conversation,
-      message,
-    });
-
-    // Send notification
-
-    const recipients: any = [];
-    const c = await conversation.findUnique({
-      where: { id: data.conversation },
-      select: {
-        friendship: {
-          select: {
-            user: {
-              select: {
-                onesignal_external_user_id: true,
-                id: true,
-                username: true,
-              },
-            },
-            friend: {
-              select: {
-                onesignal_external_user_id: true,
-                id: true,
-                username: true,
-              },
-            },
-          },
-        },
-        party: {
-          select: {
-            name: true,
-            participations: {
-              select: {
-                user: {
-                  select: {
-                    onesignal_external_user_id: true,
-                    id: true,
-                    username: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (c.party != null) {
-      c.party.participations.forEach((p) => {
-        if (p.user.id == state.user.id) return;
-        recipients.push(p.user);
-      });
-    } else if (c.friendship != null) {
-      recipients.push(
-        c.friendship.friend.id == state.user.id
-          ? c.friendship.user
-          : c.friendship.friend
-      );
+    sendMessage(data.conversation, data.type, data.content, state.user);
+  });
+  client.on('delete_message', async (data, ack) => {
+    if (!state.authenticated) return;
+    if (!client.rooms.has(PREFIX + data.conversationId)) {
+      return ack({ success: false, error: 'NOT_IN_CONVERSATION' });
     }
 
-    const conversationName =
-      c.party != null
-        ? c.party.name
-        : c.friendship.user.id == state.user.id
-        ? c.friendship.friend.username
-        : c.friendship.user.username;
-
-    sendToQueue('notifications', {
-      action: 'MESSAGE_RECEIVED',
-      data: {
-        conversation_id: data.conversation,
-        message,
-        conversation_name: conversationName,
+    if (data.messageId == null) {
+      return ack({ success: false, error: 'MESSAGE_ID_REQUIRED' });
+    }
+    const m = await chatMessage.deleteMany({
+      where: {
+        id: data.messageId,
+        sender_id: state.user.id,
+        conversation_id: data.conversationId,
       },
-      recipients: recipients,
-      sender: state.user,
     });
+
+    if (m.count > 0) {
+      io.to(PREFIX + data.conversationId).emit('message_deleted', {
+        conversationId: data.conversationId,
+        messageId: data.messageId,
+      });
+    }
+  });
+
+  client.on('get_conversation_mutes', async (data, ack) => {
+    if (!state.authenticated) return;
+    const mutes = await conversationMute.findMany({
+      where: { user_id: state.user.id },
+      select: {
+        conversation_id: true,
+        conversation: true,
+      },
+    });
+
+    ack({ success: true, mutes });
+  });
+
+  client.on('mute_conversation', async (data, ack) => {
+    const conversation_id = data.conversation_id;
+
+    if (!state.authenticated) return;
+    if (!client.rooms.has(PREFIX + conversation_id)) {
+      return ack({ success: false, error: 'NOT_IN_CONVERSATION' });
+    }
+
+    try {
+      await conversationMute.create({
+        data: {
+          conversation_id,
+          user_id: state.user.id,
+        },
+      });
+    } catch (e) {
+      ack({ success: false, error: 'ALREADY_MUTED' });
+      return;
+    }
+
+    ack({ success: true });
+  });
+
+  client.on('unmute_conversation', async (data, ack) => {
+    const conversation_id: string = data.conversation_id;
+
+    if (!state.authenticated) return;
+    if (!client.rooms.has(PREFIX + conversation_id)) {
+      return ack({ success: false, error: 'NOT_IN_CONVERSATION' });
+    }
+
+    const r = await conversationMute.deleteMany({
+      where: {
+        conversation_id: conversation_id,
+        user_id: state.user.id,
+      },
+    });
+    if (r.count == 0) {
+      return ack({ success: false, error: 'NOT_MUTED' });
+    }
+
+    ack({ success: true });
   });
 
   client.on('mark_as_read', async (data, ack) => {

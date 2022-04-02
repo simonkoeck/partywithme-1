@@ -9,10 +9,11 @@ interface IData {
   action: string;
   recipients: User[];
   sender?: User;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
 }
 
-function connect(): Promise<any> {
+function connect() {
   return new Promise((resolve, reject) => {
     amqp.connect('amqp://localhost', function (err, connection) {
       if (err) reject(err);

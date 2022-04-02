@@ -131,9 +131,16 @@ consume('notifications', (data) => {
             scope: 'CHAT',
             conversation: data.data.conversation_id,
             conversation_name: data.data.conversation_name,
+            conversation_icon_url:
+              env('CDN_URL') +
+              '/dl/av/' +
+              data.data.conversation_icon_user_id +
+              '-200x200.jpg',
+            is_group_conversation: data.data.is_group_conversation,
             message: data.data.message,
             ott,
-            api_url: env('API_URL'),
+            cdn_url: env('CDN_URL'),
+            chat_url: env('CHAT_URL'),
           },
           'CHAT'
         );

@@ -6,6 +6,7 @@ const MAX_DISTANCE_IN_KM = 20;
 const fetchParties = async (req: Request, res: Response) => {
   const [lat, lng] = req.query.location.toString().split(',').map(Number);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let parties: any =
     await client.$queryRaw`SELECT p.id, p.name, p.scope, p.description, p.latitude, p.longitude, p.starts_at, p.ends_at
                           , u.id as creator_id, u.username as creator_username

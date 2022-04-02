@@ -1,8 +1,12 @@
 import { readFileSync } from 'fs';
 
+interface KeyValue {
+  [key: string]: string;
+}
+
 interface ITranslation {
-  de: any;
-  en: any;
+  de: KeyValue;
+  en: KeyValue;
 }
 
 const translations: ITranslation = {

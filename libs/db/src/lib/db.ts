@@ -31,5 +31,6 @@ export const partyParticipation = client.partyParticipation;
 export const chatMessage = client.chatMessage;
 export const conversation = client.conversation;
 export const chatMessageReadConfirmation = client.chatMessageReadConfirmation;
+export const conversationMute = client.conversationMute;
 
 export * from '.prisma/client';

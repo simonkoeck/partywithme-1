@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { ReactElement } from 'react';
@@ -15,12 +16,12 @@ export default function Header(): ReactElement {
           push('/');
         }}
       >
-        <img src="/assets/images/party.png" className="w-8 mr-4" />
+        <img src="/assets/images/party.png" className="w-8 mr-4" alt="logo" />
         <span className="text-xl font-bold">Party With Me</span>
       </div>
       <div className="flex flex-row justify-center gap-6 mx-auto my-2 md:gap-16 text-md sm:mx-0 sm:my-0">
         <LinkItem text="Features" href="#features" />
-        <LinkItem text="Download" href="#download" />
+        <LinkItem text="Download" href="/download" />
         <LinkItem
           text="Github"
           href="https://github.com/simplifylabs/partywithme"

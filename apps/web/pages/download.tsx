@@ -19,11 +19,17 @@ export default function DownloadPage(): ReactElement {
       router.replace(
         'https://play.google.com/store/apps/details?id=com.simplifysoftware.partywithme'
       );
-  }, [isAndroid, router]);
+    else if (isIos()) {
+      router.replace('https://apple.com');
+    } else
+      router.replace(
+        'https://play.google.com/store/apps/details?id=com.simplifysoftware.partywithme'
+      );
+  }, [isAndroid, isIos, router]);
 
   return (
     <>
-      <Meta title="Party With Me | Download" description={t('title')}></Meta>
+      <Meta title={'Party With Me | ' + t('title')} description="" />
       <Layout>
         <H1 text={t('title')} />
         <div className="w-1/3 m-auto mt-8">

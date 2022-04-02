@@ -9,16 +9,9 @@ const client = createClient({
 });
 
 client.on('error', (err) => console.error(err));
-
-let connected = false;
-
-export async function connect() {
-  await client.connect();
-  connected = true;
-}
+client.connect();
 
 export async function checkOneTimeToken(token: string): Promise<User> {
-  if (!connected) await connect();
   const r = await client.get(`${prefix}${token}`);
   if (typeof r == 'undefined' || r == null || r == '') return null;
   // Delete token
@@ -33,14 +26,14 @@ export async function generateOneTimeToken(
   user: User,
   expiresInMinutes: number = 60 * 24 * 7
 ) {
-  if (!connected) await connect();
   const ott = randomBytes(64).toString('hex');
   await client.set(
     `${prefix}${ott}`,
     JSON.stringify({
       exp: addMinutes(new Date(), expiresInMinutes),
       userId: user.id,
-    })
+    }),
+    { PX: expiresInMinutes * 60000 }
   );
   return ott;
 }

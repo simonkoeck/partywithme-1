@@ -18,7 +18,7 @@ export const accessControlMiddleware = async (
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       req.user = await accessWithAccessToken(token);
-    } catch (e: any) {
+    } catch (e) {
       return res.status(403).json({ error: e.name });
     }
     next();

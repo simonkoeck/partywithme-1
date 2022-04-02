@@ -6,6 +6,7 @@ import { unlinkSync } from 'fs';
 import { env } from '@pwm/env';
 
 interface MulterRequest extends Request {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   file: any;
 }
 

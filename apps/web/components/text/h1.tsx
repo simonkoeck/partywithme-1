@@ -5,5 +5,7 @@ interface Props {
 }
 
 export default function H1(props: Props): ReactElement {
-  return <h1 className="text-4xl font-extrabold">{props.text}</h1>;
+  return (
+    <h1 className="text-4xl font-extrabold text-gray-800">{props.text}</h1>
+  );
 }

@@ -44,6 +44,7 @@ model User {
   friends_friend          Friendship[]  @relation(name: "Friendship_friend")
   read_confirmations      ChatMessageReadConfirmation[]
   messages                ChatMessage[]
+  conversation_mutes      ConversationMute[]
   created_at              DateTime      @default(now())
   updated_at              DateTime      @updatedAt @default(now())
 }
@@ -111,6 +112,7 @@ model Conversation {
   friendship_id String? @unique
   party         Party?  @relation(fields: [party_id], references: [id], onDelete: Cascade)
   party_id      String? @unique
+  mutes         ConversationMute[]
   messages      ChatMessage[]
 }
 
@@ -139,4 +141,14 @@ model ChatMessageReadConfirmation {
   message_id      String
   created_at      DateTime        @default(now())
   @@unique([user_id, message_id], name: "UQ_ChatMessageReadConfirmation")
+}
+
+model ConversationMute {
+  id              String          @id @default(cuid())
+  user            User            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id         String
+  conversation    Conversation    @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  conversation_id String
+  created_at      DateTime        @default(now())
+  @@unique([user_id, conversation_id], name: "UQ_ConversationMute")
 }
