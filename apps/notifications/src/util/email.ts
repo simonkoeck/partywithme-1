@@ -47,7 +47,9 @@ export async function sendEmail(
     html: html, // html body
   });
 
-  console.log('Message sent: %s', info.messageId);
+  if (env('NODE_ENV') == 'development') {
+    console.log('Message sent: %s', info.messageId);
+  }
 
   if (env('NODE_ENV') == 'development')
     console.log('Preview URL: %s', getTestMessageUrl(info));
