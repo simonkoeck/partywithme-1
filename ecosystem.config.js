@@ -26,7 +26,7 @@ module.exports = {
     {
       name: 'pwm-web',
       script: 'nx',
-      args: 'run web:serve:production',
+      args: 'run web:serve:production --port=9030',
       env: {
         NODE_ENV: 'production',
       },
