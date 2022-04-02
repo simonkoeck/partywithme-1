@@ -1,18 +1,25 @@
 import useTranslation from 'next-translate/useTranslation';
 import React from 'react';
+import Alert from '../components/alert';
 import Layout from '../components/layout';
 import Meta from '../components/meta';
 import H1 from '../components/text/h1';
 
 export default function CommunityGuidelines() {
-  const { t } = useTranslation('community-guidelines');
+  const { t, lang } = useTranslation('community-guidelines');
 
   return (
     <Layout>
       <Meta title={'Party With Me | ' + t('title')} description="" />
       <H1 text={t('title')} />
+      {lang != 'en' && (
+        <Alert
+          text={t('common:not_available_in_current_language')}
+          type="INFO"
+        />
+      )}
       <article
-        className="prose lg:prose-xl"
+        className="prose"
         dangerouslySetInnerHTML={{
           __html: `<p>
           We define hate speech as content that does or intends to attack, threaten, incite violence against, or dehumanize an individual or a group of individuals on the basis of protected attributes. We also do not allow content that verbally or physically threatens violence or depicts harm to an individual or a group based on any of the following protected attributes:</p>

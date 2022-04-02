@@ -1,5 +1,6 @@
 import useTranslation from 'next-translate/useTranslation';
 import React, { ReactElement } from 'react';
+import Alert from '../components/alert';
 import Layout from '../components/layout';
 import Meta from '../components/meta';
 import H1 from '../components/text/h1';
@@ -54,12 +55,18 @@ word-break: break-word !important;
       <div style="color: #595959;font-size: 14px;padding-top:16px;">This privacy policy was created using Termly's <a style="color: rgb(48, 48, 241) !important;" href="https://termly.io/products/privacy-policy-generator/?ftseo">Privacy Policy Generator</a>.</div>
   `;
 
-  const { t } = useTranslation('privacy-policy');
+  const { t, lang } = useTranslation('privacy-policy');
 
   return (
     <Layout>
-      <Meta title={"Party With Me | " + t('title')} description="" />
+      <Meta title={'Party With Me | ' + t('title')} description="" />
       <H1 text={t('title')} />
+      {lang != 'en' && (
+        <Alert
+          text={t('common:not_available_in_current_language')}
+          type="INFO"
+        />
+      )}
       <article
         className="prose lg:prose-xl"
         dangerouslySetInnerHTML={{ __html: rawHtml }}
