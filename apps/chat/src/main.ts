@@ -20,6 +20,7 @@ import {
 import { consume, sendToQueue } from '@pwm/queue';
 import * as express from 'express';
 import { fetchUserConversations } from './helper';
+import { getActiveBans } from '@partywithme/bans';
 const app = express();
 
 declare global {
@@ -226,6 +227,7 @@ interface IState {
   authenticated: boolean;
   user?: User;
   reset_authentication_timeout?: NodeJS.Timeout;
+  isBanned: boolean;
 }
 
 io.on('connection', (client) => {
@@ -233,6 +235,7 @@ io.on('connection', (client) => {
     authenticated: false,
     user: null,
     reset_authentication_timeout: null,
+    isBanned: false,
   };
 
   client.emit('auth_required', { reason: 'INITIAL' });
@@ -256,6 +259,10 @@ io.on('connection', (client) => {
     state.user = await user.findUnique({
       where: { id: u.id },
     });
+
+    const bans = await getActiveBans(u.id);
+    if (bans.findIndex((v) => v.restriction == 'NO_CHAT') != -1)
+      state.isBanned = true;
 
     state.authenticated = true;
 

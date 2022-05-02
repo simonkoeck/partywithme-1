@@ -4,6 +4,7 @@
     "access-control": "libs/access-control",
     "api": "apps/api",
     "auth": "libs/auth",
+    "bans": "libs/bans",
     "cdn": "apps/cdn",
     "chat": "apps/chat",
     "db": "libs/db",

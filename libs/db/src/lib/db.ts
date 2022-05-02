@@ -32,5 +32,7 @@ export const chatMessage = client.chatMessage;
 export const conversation = client.conversation;
 export const chatMessageReadConfirmation = client.chatMessageReadConfirmation;
 export const conversationMute = client.conversationMute;
+export const report = client.report;
+export const ban = client.ban;
 
 export * from '.prisma/client';

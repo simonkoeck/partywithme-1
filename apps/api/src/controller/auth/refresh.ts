@@ -7,6 +7,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '@pwm/auth';
+import { getActiveBans } from '@partywithme/bans';
 
 const refreshController = async (req: Request, res: Response) => {
   const old_refreshToken = req.body.refresh_token;
@@ -20,10 +21,15 @@ const refreshController = async (req: Request, res: Response) => {
 
   const u = await user.findFirst({
     where: { id: decoded.user.id },
-    select: { id: true, username: true },
+    select: { id: true, username: true, verified: true },
   });
 
   if (!u) return res.status(403).json({ error: 'USER_NOT_FOUND' });
+  if (!u.verified) return res.status(403).json({ error: 'USER_NOT_VERIFIED' });
+
+  const bans = await getActiveBans(u.id);
+  if (bans.findIndex((v) => v.restriction == 'NO_ACCESS') != -1)
+    return res.status(403).json({ error: 'BANNED' });
 
   const accessToken = await generateAccessToken(u);
   const refreshToken = await generateRefreshToken(u);

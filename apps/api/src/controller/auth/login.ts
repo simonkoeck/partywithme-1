@@ -4,6 +4,7 @@ import checkValidationError, { prefabs } from '../../middleware/validation';
 import { user } from '@pwm/db';
 import { generateAccessToken, generateRefreshToken } from '@pwm/auth';
 import { comparePasswords } from '../../util/hash';
+import { getActiveBans } from '@partywithme/bans';
 
 const login = async (req: Request, res: Response) => {
   const u = await user.findFirst({
@@ -16,6 +17,10 @@ const login = async (req: Request, res: Response) => {
   if (!matchPw) return res.status(403).json({ error: 'WRONG_PASSWORD' });
 
   if (!u.verified) return res.status(403).json({ error: 'NOT_VERIFIED' });
+
+  const bans = await getActiveBans(u.id);
+  if (bans.findIndex((v) => v.restriction == 'NO_ACCESS') != -1)
+    return res.status(403).json({ error: 'BANNED' });
 
   const accessToken = await generateAccessToken(u);
   const refreshToken = await generateRefreshToken(u);

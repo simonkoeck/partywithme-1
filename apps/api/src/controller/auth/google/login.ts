@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { user } from '@pwm/db';
 import { generateAccessToken, generateRefreshToken } from '@pwm/auth';
 import checkValidationError from '../../../middleware/validation';
+import { getActiveBans } from '@partywithme/bans';
 
 const googleLogin = async (req: Request, res: Response) => {
   const ticket = await verify(req.body.id_token);
@@ -20,6 +21,9 @@ const googleLogin = async (req: Request, res: Response) => {
   }
 
   if (!u.verified) return res.status(403).json({ error: 'NOT_VERIFIED' });
+  const bans = await getActiveBans(u.id);
+  if (bans.findIndex((v) => v.restriction == 'NO_ACCESS') != -1)
+    return res.status(403).json({ error: 'BANNED' });
 
   const accessToken = await generateAccessToken(u);
   const refreshToken = await generateRefreshToken(u);

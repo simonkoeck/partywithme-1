@@ -45,6 +45,9 @@ model User {
   read_confirmations      ChatMessageReadConfirmation[]
   messages                ChatMessage[]
   conversation_mutes      ConversationMute[]
+  bans                    Ban[]
+  reported                Report[] @relation(name: "Report_reported_by")
+  reports                 Report[] @relation(name: "Report_user")
   created_at              DateTime      @default(now())
   updated_at              DateTime      @updatedAt @default(now())
 }
@@ -155,4 +158,49 @@ model ConversationMute {
   conversation_id String
   created_at      DateTime        @default(now())
   @@unique([user_id, conversation_id], name: "UQ_ConversationMute")
+}
+
+// Report and Bans
+enum ReportAndBanReason {
+  SPAM
+  HARASSMENT
+  VIOLENCE
+  ADVERTISING
+  IDENTITY_THEFT
+  INAPPROPRIATE_USERNAME
+  OTHER
+}
+
+model Report {
+  id        String  @id @default(cuid())
+  user      User    @relation(fields: [user_id], references: [id], onDelete: Cascade, name: "Report_user")
+  user_id   String
+  reason    ReportAndBanReason
+  bans      Ban[]
+  reported_by User    @relation(fields: [reported_by_id], references: [id], onDelete: Cascade, name: "Report_reported_by")
+  reported_by_id   String
+  additional_info String?
+  reviewed  Boolean @default(false)
+  created_at DateTime @default(now())
+  
+  @@unique([user_id, reported_by_id, reason], name: "UQ_Report")
+}
+
+enum BanRestriction {
+  NO_CHAT
+  NO_ACCESS
+}
+
+model Ban {
+  id        String  @id @default(cuid())
+  user      User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id   String
+  reason    ReportAndBanReason
+  restriction BanRestriction
+  report    Report? @relation(fields: [report_id], references: [id], onDelete: SetNull)
+  report_id String?
+  duration  Int
+  lifetime  Boolean @default(false)
+  additional_info String?
+  created_at DateTime @default(now())
 }
