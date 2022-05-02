@@ -27,6 +27,7 @@ import authRouter from './router/auth';
 import usersRouter from './router/users';
 import partiesRouter from './router/parties';
 import friendsRouter from './router/friends';
+import reportsRouter from './router/reports';
 import { env } from '@pwm/env';
 
 (async () => {
@@ -50,6 +51,7 @@ import { env } from '@pwm/env';
   app.use('/users', usersRouter);
   app.use('/parties', partiesRouter);
   app.use('/friends', friendsRouter);
+  app.use('/reports', reportsRouter);
 
   app.listen(port, () => {
     console.log(`API is listening on http://localhost:${port}`);
