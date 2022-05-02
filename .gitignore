@@ -42,3 +42,4 @@ Thumbs.db
 .keys/
 .env
 uploads/
+notification-config.json

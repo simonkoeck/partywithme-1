@@ -35,7 +35,8 @@ async function sendMessage(
   conversationId: string,
   type: 'TEXT',
   content: string,
-  sender: User
+  sender: User,
+  replyTo: string | null
 ) {
   const message = await chatMessage.create({
     data: {
@@ -48,12 +49,14 @@ async function sendMessage(
           user_id: sender.id,
         },
       },
+      reply_to_id: replyTo,
     },
     select: {
       id: true,
       content: true,
       type: true,
       created_at: true,
+      reply_to_id: true,
       read_confirmations: {
         select: {
           user: {
@@ -180,7 +183,13 @@ app.post('/send_message', accessControlMiddleware, async (req, res) => {
   const conversations = await fetchUserConversations(req.user);
   if (conversations.findIndex((c) => c.id == conversation_id) > -1) {
     try {
-      await sendMessage(conversation_id, 'TEXT', message, req.user);
+      await sendMessage(
+        conversation_id,
+        'TEXT',
+        message,
+        req.user,
+        req.body.reply_to || null
+      );
     } catch (e) {
       console.error(e);
       res.status(500).json({});
@@ -277,7 +286,13 @@ io.on('connection', (client) => {
       return ack({ success: false, error: 'NOT_IN_CONVERSATION' });
     }
 
-    sendMessage(data.conversation, data.type, data.content, state.user);
+    sendMessage(
+      data.conversation,
+      data.type,
+      data.content,
+      state.user,
+      data.reply_to
+    );
   });
   client.on('delete_message', async (data, ack) => {
     if (!state.authenticated) return;
@@ -413,6 +428,7 @@ io.on('connection', (client) => {
         content: true,
         type: true,
         created_at: true,
+        reply_to_id: true,
         read_confirmations: {
           select: {
             user: {
@@ -470,6 +486,7 @@ io.on('connection', (client) => {
             content: true,
             type: true,
             created_at: true,
+            reply_to_id: true,
             read_confirmations: {
               select: {
                 user: {
@@ -559,6 +576,7 @@ consume('chat', async (data) => {
             content: true,
             type: true,
             created_at: true,
+            reply_to_id: true,
             read_confirmations: {
               select: {
                 user: {

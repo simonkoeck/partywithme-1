@@ -118,6 +118,7 @@ model Conversation {
 
 enum ChatMessageType {
   TEXT
+  IMAGE
 }
 
 model ChatMessage {
@@ -129,6 +130,9 @@ model ChatMessage {
   sender              User            @relation(fields: [sender_id], references: [id], onDelete: Cascade)
   sender_id           String
   read_confirmations  ChatMessageReadConfirmation[]
+  reply_to            ChatMessage?    @relation(fields: [reply_to_id], references: [id], onDelete: SetNull, name: "ChatMessage_reply")
+  reply_to_id         String?
+  replies             ChatMessage[]   @relation(name: "ChatMessage_reply")
   created_at          DateTime        @default(now())
   updated_at          DateTime        @updatedAt @default(now())
 }

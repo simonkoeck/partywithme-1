@@ -1,4 +1,5 @@
 import { env } from '@pwm/env';
+import { readFileSync } from 'fs';
 import { Client, HTTPError } from 'onesignal-node';
 import { CreateNotificationBody } from 'onesignal-node/lib/types';
 
@@ -15,6 +16,24 @@ interface IButton {
   action: string;
   text: string;
 }
+
+interface IConfig {
+  channels: {
+    friends: string;
+    chat: string;
+    parties: string;
+  };
+}
+function loadConfig(): IConfig {
+  try {
+    const c = readFileSync('notification-config.json', 'utf8');
+    return JSON.parse(c);
+  } catch (e) {
+    throw Error('Error loading notification config file');
+  }
+}
+
+const config = loadConfig();
 
 export async function sendNotification(
   externalUserIds: string[],
@@ -38,10 +57,10 @@ export async function sendNotification(
     },
     android_channel_id:
       channel == 'PARTIES'
-        ? 'd5ec83b0-143f-422c-b560-c82ea8e3faa6'
+        ? config.channels.parties
         : channel == 'FRIENDS'
-        ? '7c885d6f-a313-4976-8ee8-1b753511add0'
-        : '7754885d-7095-470f-9678-89a246ccdbff',
+        ? config.channels.friends
+        : config.channels.chat,
     include_external_user_ids: externalUserIds,
     large_icon: image,
     data,
@@ -51,7 +70,6 @@ export async function sendNotification(
     if (process.env.NODE_ENV == 'development') console.log(response.body);
   } catch (e) {
     if (e instanceof HTTPError) {
-      // When status code of HTTP response is not 2xx, HTTPError is thrown.
       console.log(e.statusCode);
       console.log(e.body);
     }

@@ -14,10 +14,10 @@ export async function init() {
     tr = createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
-        user: testAccount.user, // generated ethereal user
-        pass: testAccount.pass, // generated ethereal password
+        user: testAccount.user,
+        pass: testAccount.pass,
       },
     });
   } else {
@@ -40,17 +40,15 @@ export async function sendEmail(
   subject: string
 ) {
   const info = await tr.sendMail({
-    from: 'Party With Me <' + env('SMTP_FROM') + '>', // sender address
-    to: email, // list of receivers
-    subject: subject, // Subject line
-    text: text, // plain text body
-    html: html, // html body
+    from: 'Party With Me <' + env('SMTP_FROM') + '>',
+    to: email,
+    subject: subject,
+    text: text,
+    html: html,
   });
 
   if (env('NODE_ENV') == 'development') {
+    console.log('Preview URL: %s', getTestMessageUrl(info));
     console.log('Message sent: %s', info.messageId);
   }
-
-  if (env('NODE_ENV') == 'development')
-    console.log('Preview URL: %s', getTestMessageUrl(info));
 }

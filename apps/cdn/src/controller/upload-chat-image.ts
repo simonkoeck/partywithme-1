@@ -1,9 +1,9 @@
+import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
 import * as multer from 'multer';
 import { extname, resolve } from 'path';
 import * as sharp from 'sharp';
 import { unlinkSync } from 'fs';
-import { env } from '@pwm/env';
 
 interface MulterRequest extends Request {
   file: Express.Multer.File;
@@ -32,36 +32,21 @@ const upload = multer({
   },
 });
 
-const uploadAvatarController = async (req: Request, res: Response) => {
+const uploadChatImageController = async (req: Request, res: Response) => {
   const file = (req as MulterRequest).file;
   if (!file) return res.status(403).json({ error: 'NO_FILE_SPECIFIED' });
+  const id: string = randomBytes(16).toString('hex');
   try {
     await sharp(file.path)
-      .resize(50, 50, {
-        fit: sharp.fit.cover,
-        position: sharp.strategy.entropy,
-      })
-      .jpeg({ quality: 65 })
+      .jpeg({ quality: 100 })
       .toFile(
-        resolve(file.destination, '..', 'avatars', req.user.id + '-50x50.jpg')
+        resolve(file.destination, '..', 'chat_images', id + '-original.jpg')
       );
+
     await sharp(file.path)
-      .resize(100, 100, {
-        fit: sharp.fit.cover,
-        position: sharp.strategy.entropy,
-      })
-      .jpeg({ quality: 82 })
+      .jpeg({ quality: 70 })
       .toFile(
-        resolve(file.destination, '..', 'avatars', req.user.id + '-100x100.jpg')
-      );
-    await sharp(file.path)
-      .resize(200, 200, {
-        fit: sharp.fit.cover,
-        position: sharp.strategy.entropy,
-      })
-      .jpeg({ quality: 90 })
-      .toFile(
-        resolve(file.destination, '..', 'avatars', req.user.id + '-200x200.jpg')
+        resolve(file.destination, '..', 'chat_images', id + '-preview.jpg')
       );
     unlinkSync(file.path);
   } catch (e) {
@@ -71,12 +56,8 @@ const uploadAvatarController = async (req: Request, res: Response) => {
 
   res.status(200).json({
     success: true,
-    avatar_urls: {
-      '50x50': env('AVATAR_URL') + req.user.id + '-50x50.jpg',
-      '100x100': env('AVATAR_URL') + req.user.id + '-100x100.jpg',
-      '200x200': env('AVATAR_URL') + req.user.id + '-200x200.jpg',
-    },
+    id,
   });
 };
 
-export default [upload.single('image'), uploadAvatarController];
+export default [upload.single('image'), uploadChatImageController];

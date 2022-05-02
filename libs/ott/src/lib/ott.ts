@@ -1,11 +1,12 @@
 import { user, User } from '@pwm/db';
+import { env } from '@pwm/env';
 import { randomBytes } from 'crypto';
 import { createClient } from 'redis';
 
 const prefix = 'pwm-ott:';
 
 const client = createClient({
-  password: process.env.REDIS_PW,
+  password: env('REDIS_PW'),
 });
 
 client.on('error', (err) => console.error(err));

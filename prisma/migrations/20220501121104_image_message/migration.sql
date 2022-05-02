@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `ChatMessage` MODIFY `type` ENUM('TEXT', 'IMAGE') NOT NULL DEFAULT 'TEXT';
