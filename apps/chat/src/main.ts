@@ -37,7 +37,8 @@ async function sendMessage(
   type: 'TEXT',
   content: string,
   sender: User,
-  replyTo: string | null
+  replyTo: string | null,
+  localReferrer: string | undefined
 ) {
   const message = await chatMessage.create({
     data: {
@@ -79,7 +80,7 @@ async function sendMessage(
 
   io.to(PREFIX + conversationId).emit('message_received', {
     conversation: conversationId,
-    message,
+    message: { ...message, local_referrer: localReferrer },
   });
 
   // Send notification
@@ -189,7 +190,8 @@ app.post('/send_message', accessControlMiddleware, async (req, res) => {
         'TEXT',
         message,
         req.user,
-        req.body.reply_to || null
+        req.body.reply_to || null,
+        undefined
       );
     } catch (e) {
       console.error(e);
@@ -298,7 +300,8 @@ io.on('connection', (client) => {
       data.type,
       data.content,
       state.user,
-      data.reply_to
+      data.reply_to,
+      data.local_referrer
     );
   });
   client.on('delete_message', async (data, ack) => {
