@@ -21,6 +21,23 @@ import { resolve } from 'path';
 import { accessControlMiddleware } from '@pwm/accessControl';
 import { env } from '@pwm/env';
 import uploadChatImage from './controller/upload-chat-image';
+import { existsSync, mkdir } from 'fs';
+
+// Check if upload folder exists
+if (!existsSync('uploads')) {
+  mkdir('uploads', (err) => {
+    if (err) throw err;
+  });
+  mkdir('uploads/avatars', { recursive: true }, (err) => {
+    if (err) throw err;
+  });
+  mkdir('uploads/temp', { recursive: true }, (err) => {
+    if (err) throw err;
+  });
+  mkdir('uploads/chat_images', { recursive: true }, (err) => {
+    if (err) throw err;
+  });
+}
 
 const app = express();
 const port = env('PORT') || 5000;
