@@ -4,14 +4,17 @@ import { extname, resolve } from 'path';
 import * as sharp from 'sharp';
 import { unlinkSync } from 'fs';
 import { env } from '@pwm/env';
+import { loadConfig } from '@partywithme/config-loader';
 
 interface MulterRequest extends Request {
   file: Express.Multer.File;
 }
 
+const conf = loadConfig<'cdn'>('cdn');
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/temp');
+    cb(null, conf.temp_folder);
   },
   filename: function (req, file, cb) {
     cb(null, file.fieldname + '-' + Date.now() + extname(file.originalname));

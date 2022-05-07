@@ -1,15 +1,21 @@
+import { loadConfig } from '@partywithme/config-loader';
 import { PrismaClient } from '@prisma/client';
+import { existsSync, unlinkSync } from 'fs';
 
 export const client = new PrismaClient();
 
+const cdnConf = loadConfig<'cdn'>('cdn');
+
 // Conversation
 client.$use(async (params, next) => {
-  const result = await next(params);
   if (params.action == 'create' && params.model == 'Party') {
+    const result = await next(params);
     await client.conversation.create({
       data: { party_id: result.id },
     });
+    return result;
   } else if (params.action == 'create' && params.model == 'Friendship') {
+    const result = await next(params);
     const count = await client.friendship.count({
       where: { friend_id: result.user_id, user_id: result.friend_id },
     });
@@ -18,7 +24,29 @@ client.$use(async (params, next) => {
     await client.conversation.create({
       data: { friendship_id: result.id },
     });
+    return result;
+  } else if (params.action == 'deleteMany' && params.model == 'ChatMessage') {
+    // Delete corresponding chat image
+    const m = await chatMessage.findUnique({
+      where: { id: params.args.where.id },
+    });
+    if (m.type == 'IMAGE') {
+      // Remove image from uploads
+      if (
+        existsSync(
+          cdnConf.chat_images_folder + '/' + m.content + '-original.jpg'
+        )
+      ) {
+        unlinkSync(
+          cdnConf.chat_images_folder + '/' + m.content + '-original.jpg'
+        );
+        unlinkSync(
+          cdnConf.chat_images_folder + '/' + m.content + '-preview.jpg'
+        );
+      }
+    }
   }
+  const result = await next(params);
   return result;
 });
 

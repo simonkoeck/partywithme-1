@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@partywithme/bans": ["libs/bans/src/index.ts"],
+      "@partywithme/config-loader": ["libs/config-loader/src/index.ts"],
       "@pwm/accessControl": ["libs/access-control/src/index.ts"],
       "@pwm/auth": ["libs/auth/src/index.ts"],
       "@pwm/db": ["libs/db/src/index.ts"],

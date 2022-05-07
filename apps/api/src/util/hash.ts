@@ -1,14 +1,10 @@
+import { loadConfig } from '@partywithme/config-loader';
 import * as bcrypt from 'bcrypt';
 
-const SALT_ROUNDS = 10;
+const { salt_rounds } = loadConfig<'api'>('api');
 
 export async function hash(password: string) {
-  try {
-    return await bcrypt.hash(password, SALT_ROUNDS);
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+  return await bcrypt.hash(password, salt_rounds);
 }
 
 export async function comparePasswords(

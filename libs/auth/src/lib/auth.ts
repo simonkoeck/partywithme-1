@@ -1,10 +1,13 @@
 import { sign, verify } from 'jsonwebtoken';
 import { readFileSync } from 'fs';
+import { loadConfig } from '@partywithme/config-loader';
 
-const ISSUER = 'party-with-me';
+const conf = loadConfig<'auth'>('auth');
 
-const privateKey = readFileSync('.keys/private.pem', 'utf-8');
-export const publicKey = readFileSync('.keys/public.pem', 'utf-8');
+const ISSUER = conf.issuer;
+
+const privateKey = readFileSync(conf.private_key_path, 'utf-8');
+export const publicKey = readFileSync(conf.public_key_path, 'utf-8');
 
 if (!privateKey || !publicKey) throw new Error('Private/Public key not set.');
 
@@ -21,7 +24,7 @@ export function generateAccessToken(user: IAuthUser) {
     },
     privateKey,
     {
-      expiresIn: '30m',
+      expiresIn: conf.access_token_exp,
       issuer: ISSUER,
       subject: user.id,
       algorithm: 'RS256',
@@ -34,7 +37,7 @@ export function generateRefreshToken(user: IAuthUser) {
     { user: { id: user.id, username: user.username }, typ: 'RT' },
     privateKey,
     {
-      expiresIn: '30d',
+      expiresIn: conf.refresh_token_exp,
       issuer: ISSUER,
       subject: user.id.toString(),
       algorithm: 'RS256',

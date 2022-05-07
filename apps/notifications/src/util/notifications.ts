@@ -1,5 +1,5 @@
+import { loadConfig } from '@partywithme/config-loader';
 import { env } from '@pwm/env';
-import { readFileSync } from 'fs';
 import { Client, HTTPError } from 'onesignal-node';
 import { CreateNotificationBody } from 'onesignal-node/lib/types';
 
@@ -17,23 +17,7 @@ interface IButton {
   text: string;
 }
 
-interface IConfig {
-  channels: {
-    friends: string;
-    chat: string;
-    parties: string;
-  };
-}
-function loadConfig(): IConfig {
-  try {
-    const c = readFileSync('notification-config.json', 'utf8');
-    return JSON.parse(c);
-  } catch (e) {
-    throw Error('Error loading notification config file');
-  }
-}
-
-const config = loadConfig();
+const conf = loadConfig<'notifications'>('notifications');
 
 export async function sendNotification(
   externalUserIds: string[],
@@ -57,10 +41,10 @@ export async function sendNotification(
     },
     android_channel_id:
       channel == 'PARTIES'
-        ? config.channels.parties
+        ? conf.android.channels.parties
         : channel == 'FRIENDS'
-        ? config.channels.friends
-        : config.channels.chat,
+        ? conf.android.channels.friends
+        : conf.android.channels.chat,
     include_external_user_ids: externalUserIds,
     large_icon: image,
     data,

@@ -1,0 +1,6 @@
+{
+  "upload_folder": "uploads/",
+  "avatars_folder": "uploads/avatars",
+  "chat_images_folder": "uploads/chat_images",
+  "temp_folder": "uploads/temp"
+}
